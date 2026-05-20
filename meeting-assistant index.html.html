@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Meeting Assistant · HY Montage</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.5.0/docx.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+:root{
+  --bg:#0b0e14;--surface:#111720;--surface2:#17202e;--surface3:#1c2a3a;
+  --border:#1e2d40;--accent:#2563eb;--accent2:#3b82f6;--glow:rgba(37,99,235,.22);
+  --red:#ef4444;--green:#22c55e;--amber:#f59e0b;--purple:#a855f7;
+  --text:#e8edf5;--muted:#5a6a80;--light:#a8b5c8;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(37,99,235,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(37,99,235,.035) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0}
+.app{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:20px 16px 80px}
+
+/* ── Header ── */
+header{display:flex;align-items:center;gap:14px;padding:18px 0 24px;border-bottom:1px solid var(--border);margin-bottom:28px}
+.logo{width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:#fff;box-shadow:0 0 24px var(--glow);flex-shrink:0}
+.logo-text h1{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spacing:-.3px}
+.logo-text p{font-size:12px;color:var(--muted);margin-top:1px}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;letter-spacing:.4px;display:flex;align-items:center;gap:5px}
+.badge-green{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:var(--green)}
+.badge-blue{background:rgba(37,99,235,.12);border:1px solid rgba(37,99,235,.3);color:var(--accent2)}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:blink 1.2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+
+/* ── Nav tabs ── */
+.nav{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:24px}
+.nav-btn{flex:1;padding:9px 8px;border:none;border-radius:8px;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:.18s;display:flex;align-items:center;justify-content:center;gap:6px}
+.nav-btn.active{background:var(--surface2);color:var(--text);box-shadow:0 1px 6px rgba(0,0,0,.3)}
+.nav-btn:hover:not(.active){color:var(--light)}
+
+/* ── Cards ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:18px}
+.card-title{font-family:'Syne',sans-serif;font-weight:600;font-size:11.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:16px;display:flex;align-items:center;gap:7px}
+.card-title .ico{font-size:14px}
+
+/* ── Form ── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.field{display:flex;flex-direction:column;gap:5px}
+label{font-size:11.5px;color:var(--muted);letter-spacing:.3px}
+input[type=text],input[type=date],input[type=time],select,textarea{
+  width:100%;padding:10px 13px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:9px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13.5px;
+  outline:none;transition:.2s;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow)}
+input::placeholder,textarea::placeholder{color:var(--muted)}
+select option{background:var(--surface2)}
+textarea{resize:vertical;min-height:70px;line-height:1.5}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 20px;border-radius:9px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:500;transition:.18s;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 4px 18px var(--glow)}
+.btn-primary:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 6px 26px var(--glow)}
+.btn-danger{background:rgba(239,68,68,.13);color:var(--red);border:1px solid rgba(239,68,68,.28)}
+.btn-danger:hover{background:rgba(239,68,68,.22)}
+.btn-ghost{background:var(--surface2);color:var(--light);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--surface3)}
+.btn-green{background:rgba(34,197,94,.13);color:var(--green);border:1px solid rgba(34,197,94,.28)}
+.btn-green:hover{background:rgba(34,197,94,.22)}
+.btn-purple{background:rgba(168,85,247,.13);color:var(--purple);border:1px solid rgba(168,85,247,.28)}
+.btn-purple:hover{background:rgba(168,85,247,.22)}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
+.btn-lg{padding:13px 28px;font-size:15px}
+.btn-sm{padding:7px 13px;font-size:12px}
+.btn-icon{padding:8px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:15px;transition:.18s;line-height:1}
+.btn-icon:hover{color:var(--text);border-color:var(--accent)}
+
+/* ── Voice profile card ── */
+.voice-profile{display:flex;flex-direction:column;align-items:center;gap:14px;padding:10px 0 4px}
+.avatar-ring{
+  width:90px;height:90px;border-radius:50%;border:3px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:36px;
+  position:relative;transition:.3s;
+}
+.avatar-ring.recording{border-color:var(--red);box-shadow:0 0 0 0 rgba(239,68,68,.5);animation:ring-pulse 1.2s infinite}
+.avatar-ring.trained{border-color:var(--green);box-shadow:0 0 20px rgba(34,197,94,.2)}
+@keyframes ring-pulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.5)}70%{box-shadow:0 0 0 18px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+.voice-info{text-align:center}
+.voice-info strong{font-size:15px;font-family:'Syne',sans-serif}
+.voice-info p{font-size:12px;color:var(--muted);margin-top:3px}
+.voice-bars{display:flex;align-items:flex-end;gap:3px;height:32px;justify-content:center}
+.bar{width:5px;border-radius:3px;background:var(--accent);transition:height .08s;min-height:4px}
+.mfcc-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-top:8px}
+.mfcc-cell{height:8px;border-radius:3px;background:var(--surface3);transition:.3s}
+.mfcc-label{font-size:10px;color:var(--muted);text-align:center;margin-top:4px}
+
+/* ── Timer ── */
+.timer-hero{text-align:center;padding:20px 0 14px}
+.timer-digits{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;letter-spacing:-2px;text-shadow:0 0 40px var(--glow)}
+.timer-sub{font-size:12px;color:var(--muted);margin-top:4px;letter-spacing:.5px}
+
+/* ── Mic button ── */
+.mic-wrap{display:flex;justify-content:center;margin:8px 0 16px}
+.mic-btn{width:72px;height:72px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:30px;transition:.2s;position:relative}
+.mic-btn.off{background:var(--surface2);border:2px solid var(--border);color:var(--muted)}
+.mic-btn.off:hover{border-color:var(--accent);color:var(--accent)}
+.mic-btn.on{background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;animation:mic-pulse 1.4s infinite;box-shadow:0 0 0 0 rgba(239,68,68,.4)}
+@keyframes mic-pulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.4)}70%{box-shadow:0 0 0 18px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+.mic-hint{text-align:center;font-size:11.5px;color:var(--muted);margin-bottom:12px}
+
+/* ── Live text ── */
+.live-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:13px 15px;min-height:64px;font-size:13.5px;color:var(--light);line-height:1.6;font-style:italic;transition:.25s;position:relative}
+.live-box.active{border-color:var(--accent);box-shadow:0 0 0 2px var(--glow)}
+.live-speaker{font-size:10px;font-style:normal;font-weight:600;letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px}
+.live-speaker.me{color:var(--accent2)}
+.live-speaker.other{color:var(--amber)}
+.live-placeholder{color:var(--muted);font-style:normal;font-size:13px}
+
+/* ── Transcript ── */
+.transcript-log{max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.t-entry{display:flex;gap:10px;padding:8px 12px;border-radius:9px;background:var(--surface2);font-size:13px;line-height:1.5;align-items:flex-start}
+.t-time{color:var(--muted);font-size:10.5px;min-width:40px;padding-top:2px;flex-shrink:0}
+.t-speaker{font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;min-width:52px;padding-top:2px;flex-shrink:0}
+.t-speaker.me{color:var(--accent2)}
+.t-speaker.other{color:var(--amber)}
+.t-speaker.note{color:var(--purple)}
+.t-text{color:var(--light);flex:1}
+.t-entry.is-me{border-left:2px solid var(--accent2)}
+.t-entry.is-other{border-left:2px solid var(--amber)}
+.t-entry.is-note{border-left:2px solid var(--purple)}
+.empty-log{text-align:center;padding:24px;color:var(--muted);font-size:13px}
+
+/* ── Manual note ── */
+.note-row{display:flex;gap:8px}
+.note-row input{flex:1}
+
+/* ── Controls ── */
+.controls{display:flex;gap:10px;flex-wrap:wrap}
+
+/* ── Summary ── */
+.sum-section{margin-bottom:18px}
+.sum-section h3{font-family:'Syne',sans-serif;font-weight:600;font-size:13px;color:var(--accent2);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sum-text{font-size:13.5px;line-height:1.75;color:var(--light);white-space:pre-wrap}
+.action-item{display:flex;gap:10px;align-items:flex-start;padding:8px 12px;background:var(--surface2);border-radius:8px;font-size:13px;color:var(--light);margin-bottom:6px}
+.action-item input[type=checkbox]{accent-color:var(--accent);margin-top:2px;width:14px;height:14px;flex-shrink:0}
+.kp-tag{display:inline-flex;padding:4px 12px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);font-size:12px;color:var(--light);margin:3px}
+.dialogue-entry{margin-bottom:8px;padding:10px 14px;border-radius:10px;font-size:13px;line-height:1.6}
+.dialogue-entry.me{background:rgba(37,99,235,.08);border-left:3px solid var(--accent2)}
+.dialogue-entry.other{background:rgba(245,158,11,.06);border-left:3px solid var(--amber)}
+.dialogue-speaker{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin-bottom:3px}
+.dialogue-entry.me .dialogue-speaker{color:var(--accent2)}
+.dialogue-entry.other .dialogue-speaker{color:var(--amber)}
+
+/* ── Export bar ── */
+.export-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--border);margin-top:18px}
+.status-msg{font-size:12px;color:var(--muted)}
+
+/* ── Speaker meter ── */
+.speaker-meter{display:flex;gap:10px;margin-bottom:14px}
+.speaker-card{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;transition:.2s}
+.speaker-card.active-speaker{box-shadow:0 0 0 2px var(--accent-active,var(--accent2))}
+.speaker-card.me-card{--accent-active:var(--accent2)}
+.speaker-card.other-card{--accent-active:var(--amber)}
+.sp-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;font-family:'Syne',sans-serif;flex-shrink:0}
+.sp-avatar.me{background:rgba(37,99,235,.18);color:var(--accent2)}
+.sp-avatar.other{background:rgba(245,158,11,.15);color:var(--amber)}
+.sp-info{flex:1;min-width:0}
+.sp-name{font-size:13px;font-weight:500;truncate;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.sp-stat{font-size:11px;color:var(--muted)}
+.sp-wave{display:flex;align-items:flex-end;gap:2px;height:20px}
+.sp-bar{width:4px;border-radius:2px;min-height:3px;transition:height .08s}
+.sp-bar.me{background:var(--accent2)}
+.sp-bar.other{background:var(--amber)}
+
+/* ── Confidence badge ── */
+.conf-badge{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;letter-spacing:.3px}
+.conf-high{background:rgba(34,197,94,.12);color:var(--green)}
+.conf-med{background:rgba(245,158,11,.12);color:var(--amber)}
+.conf-low{background:rgba(100,116,139,.12);color:var(--muted)}
+
+/* ── Training steps ── */
+.train-steps{display:flex;gap:8px;margin-bottom:18px}
+.train-step{flex:1;padding:10px;border-radius:9px;background:var(--surface2);border:1px solid var(--border);text-align:center;font-size:12px;transition:.2s}
+.train-step.done{border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.07);color:var(--green)}
+.train-step.active{border-color:var(--accent);background:rgba(37,99,235,.08);color:var(--accent2)}
+.train-step-num{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:3px}
+.train-progress{height:4px;background:var(--surface3);border-radius:4px;overflow:hidden;margin-top:8px}
+.train-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:4px;transition:width .3s}
+
+/* ── Toast ── */
+#toast{position:fixed;bottom:24px;right:24px;z-index:9999;display:none}
+.toast-inner{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 18px;font-size:13px;display:flex;align-items:center;gap:8px;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:slideUp .3s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Waveform canvas ── */
+.wave-canvas{width:100%;height:44px;border-radius:8px;background:var(--surface2);margin-bottom:12px}
+
+/* ── Responsive ── */
+@media(max-width:620px){
+  .grid2,.grid3{grid-template-columns:1fr}
+  .timer-digits{font-size:40px}
+  .controls{flex-direction:column}
+  .btn{width:100%}
+  .train-steps{flex-direction:column}
+  .speaker-meter{flex-direction:column}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HEADER -->
+<header>
+  <div class="logo">HY</div>
+  <div class="logo-text">
+    <h1>Meeting Assistant</h1>
+    <p>Prise de notes intelligente · HY Montage</p>
+  </div>
+  <div class="hdr-right">
+    <div class="badge badge-blue" id="voiceBadge">🎙️ Non entraîné</div>
+    <div class="badge badge-green" id="recBadge" style="display:none"><span class="dot"></span> REC</div>
+  </div>
+</header>
+
+<!-- NAV TABS -->
+<div class="nav">
+  <button class="nav-btn active" id="tab-profile" onclick="showTab('profile')">👤 Mon Profil Vocal</button>
+  <button class="nav-btn" id="tab-meeting" onclick="showTab('meeting')">📋 Réunion</button>
+  <button class="nav-btn" id="tab-record" onclick="showTab('record')" id="tabRecord">🔴 Enregistrement</button>
+  <button class="nav-btn" id="tab-summary" onclick="showTab('summary')" id="tabSummary">📄 Compte Rendu</button>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- TAB 1 : PROFIL VOCAL                         -->
+<!-- ════════════════════════════════════════════ -->
+<div id="tab-profile-content">
+
+  <div class="card">
+    <div class="card-title"><span class="ico">🧠</span> Entraînement de ta voix</div>
+    <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:18px">
+      Enregistre 3 phrases pour que l'app reconnaisse ta voix et la distingue automatiquement de celle de ton interlocuteur.
+      Parle normalement, comme lors d'un appel.
+    </p>
+
+    <div class="train-steps">
+      <div class="train-step active" id="step1"><div class="train-step-num">1</div>Phrase 1</div>
+      <div class="train-step" id="step2"><div class="train-step-num">2</div>Phrase 2</div>
+      <div class="train-step" id="step3"><div class="train-step-num">3</div>Phrase 3</div>
+    </div>
+
+    <p id="trainPhrase" style="font-size:14px;color:var(--light);background:var(--surface2);border-radius:9px;padding:12px 16px;margin-bottom:16px;line-height:1.6;border:1px solid var(--border)">
+      💬 « Bonjour, je suis Hakan. Je travaille en freelance sur des projets vidéo et je participe à cette réunion. »
+    </p>
+
+    <canvas class="wave-canvas" id="trainWave"></canvas>
+
+    <div class="train-progress" style="margin-bottom:16px">
+      <div class="train-bar" id="trainBar" style="width:0%"></div>
+    </div>
+
+    <div class="voice-profile">
+      <div class="avatar-ring" id="avatarRing">🎙️</div>
+      <div class="voice-info">
+        <strong id="voiceStatusText">Pas encore entraîné</strong>
+        <p id="voiceStatusSub">Clique sur Enregistrer pour commencer</p>
+      </div>
+      <div class="voice-bars" id="voiceBars">
+        <div class="bar" style="height:6px"></div><div class="bar" style="height:10px"></div>
+        <div class="bar" style="height:4px"></div><div class="bar" style="height:14px"></div>
+        <div class="bar" style="height:8px"></div><div class="bar" style="height:12px"></div>
+        <div class="bar" style="height:6px"></div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap">
+      <button class="btn btn-danger" id="btnTrainRec" onclick="toggleTrainRec()">🔴 Enregistrer la phrase</button>
+      <button class="btn btn-ghost" onclick="resetVoiceProfile()">🔄 Recommencer</button>
+    </div>
+
+    <div id="trainDone" style="display:none;margin-top:18px;text-align:center">
+      <div style="font-size:32px;margin-bottom:6px">✅</div>
+      <p style="font-weight:600;color:var(--green);font-size:15px">Profil vocal enregistré !</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px">L'app reconnaîtra ta voix automatiquement pendant les appels.</p>
+      <div class="mfcc-grid" id="mfccGrid" style="max-width:260px;margin:14px auto 0"></div>
+      <p class="mfcc-label">Empreinte vocale MFCC (13 coefficients × 3 phrases)</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="ico">⚙️</span> Paramètres de détection</div>
+    <div class="grid2">
+      <div class="field">
+        <label>Mon prénom (affiché dans les notes)</label>
+        <input type="text" id="myName" placeholder="Hakan" value="Hakan"/>
+      </div>
+      <div class="field">
+        <label>Sensibilité de détection</label>
+        <select id="sensitivity">
+          <option value="0.6">Élevée (recommandée)</option>
+          <option value="0.75" selected>Moyenne</option>
+          <option value="0.88">Basse (bruyant)</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <button class="btn btn-primary" onclick="saveSettings()">💾 Sauvegarder les paramètres</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- TAB 2 : FICHE RÉUNION                        -->
+<!-- ════════════════════════════════════════════ -->
+<div id="tab-meeting-content" style="display:none">
+
+  <div class="card">
+    <div class="card-title"><span class="ico">📋</span> Informations de la réunion</div>
+    <div class="grid2" style="margin-bottom:12px">
+      <div class="field">
+        <label>Titre / Sujet</label>
+        <input type="text" id="meetingTitle" placeholder="ex: Brief contenu Arabic Learning"/>
+      </div>
+      <div class="field">
+        <label>Type de réunion</label>
+        <select id="meetingType">
+          <option>Appel téléphonique</option>
+          <option>Visioconférence</option>
+          <option>Réunion en présentiel</option>
+          <option>Appel WhatsApp</option>
+          <option>Autre</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid3" style="margin-bottom:12px">
+      <div class="field">
+        <label>Date</label>
+        <input type="date" id="meetingDate"/>
+      </div>
+      <div class="field">
+        <label>Heure de début</label>
+        <input type="time" id="meetingTime"/>
+      </div>
+      <div class="field">
+        <label>Lieu / Plateforme</label>
+        <input type="text" id="meetingLocation" placeholder="ex: Zoom, Teams, Saint-Just…"/>
+      </div>
+    </div>
+    <div class="grid2" style="margin-bottom:12px">
+      <div class="field">
+        <label>Nom du client / Interlocuteur</label>
+        <input type="text" id="clientName" placeholder="ex: Ahmad" oninput="syncClientName()"/>
+      </div>
+      <div class="field">
+        <label>Entreprise / Projet</label>
+        <input type="text" id="clientCompany" placeholder="ex: Arabic Learning"/>
+      </div>
+    </div>
+    <div class="grid2" style="margin-bottom:12px">
+      <div class="field">
+        <label>Objet / Objectif de la réunion</label>
+        <textarea id="meetingObjective" placeholder="ex: Valider le contenu du module 3, discuter de la livraison…" style="min-height:56px"></textarea>
+      </div>
+      <div class="field">
+        <label>Autres participants</label>
+        <textarea id="otherParticipants" placeholder="ex: Marie (graphiste), Karim (directeur)…" style="min-height:56px"></textarea>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-primary btn-lg" onclick="showTab('record')">🔴 Démarrer l'enregistrement</button>
+      <button class="btn btn-ghost" onclick="clearMeetingForm()">🗑️ Effacer</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- TAB 3 : ENREGISTREMENT                       -->
+<!-- ════════════════════════════════════════════ -->
+<div id="tab-record-content" style="display:none">
+
+  <!-- Timer -->
+  <div class="card" style="padding:16px 22px">
+    <div class="timer-hero">
+      <div class="timer-digits" id="timerDisplay">00:00</div>
+      <div class="timer-sub" id="timerSub">En attente</div>
+    </div>
+
+    <!-- Speaker meters -->
+    <div class="speaker-meter" id="speakerMeter" style="display:none">
+      <div class="speaker-card me-card" id="spMe">
+        <div class="sp-avatar me" id="spMeAvatar">H</div>
+        <div class="sp-info">
+          <div class="sp-name" id="spMeName">Hakan</div>
+          <div class="sp-stat"><span id="spMeCount">0</span> prises de parole</div>
+        </div>
+        <div class="sp-wave" id="spMeWave">
+          <div class="sp-bar me" style="height:3px"></div>
+          <div class="sp-bar me" style="height:3px"></div>
+          <div class="sp-bar me" style="height:3px"></div>
+          <div class="sp-bar me" style="height:3px"></div>
+          <div class="sp-bar me" style="height:3px"></div>
+        </div>
+      </div>
+      <div class="speaker-card other-card" id="spOther">
+        <div class="sp-avatar other" id="spOtherAvatar">?</div>
+        <div class="sp-info">
+          <div class="sp-name" id="spOtherName">Interlocuteur</div>
+          <div class="sp-stat"><span id="spOtherCount">0</span> prises de parole</div>
+        </div>
+        <div class="sp-wave" id="spOtherWave">
+          <div class="sp-bar other" style="height:3px"></div>
+          <div class="sp-bar other" style="height:3px"></div>
+          <div class="sp-bar other" style="height:3px"></div>
+          <div class="sp-bar other" style="height:3px"></div>
+          <div class="sp-bar other" style="height:3px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mic -->
+    <div class="mic-wrap">
+      <button class="mic-btn off" id="micBtn" onclick="toggleMic()">🎙️</button>
+    </div>
+    <p class="mic-hint" id="micHint">Clique pour activer le microphone</p>
+
+    <!-- Live text -->
+    <div class="live-box" id="liveBox">
+      <div class="live-placeholder">La transcription en temps réel apparaîtra ici…</div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls" style="margin-top:14px">
+      <select id="langSelect" class="btn btn-ghost" style="flex:0 0 auto">
+        <option value="fr-FR">🇫🇷 Français</option>
+        <option value="en-US">🇺🇸 English</option>
+        <option value="ar-SA">🇸🇦 العربية</option>
+      </select>
+      <button class="btn btn-ghost" onclick="toggleSpeaker()" id="btnSpeakerToggle" title="Forcer changement de locuteur">🔄 Changer locuteur</button>
+      <button class="btn btn-danger" onclick="stopMeeting()" id="btnStop" disabled>⏹️ Terminer la réunion</button>
+    </div>
+  </div>
+
+  <!-- Manual notes -->
+  <div class="card">
+    <div class="card-title"><span class="ico">✍️</span> Ajouter une note manuelle</div>
+    <div class="note-row">
+      <input type="text" id="noteInput" placeholder="Tape une idée, action, remarque…" onkeydown="if(event.key==='Enter')addNote()"/>
+      <button class="btn btn-purple" onclick="addNote()">+ Ajouter</button>
+    </div>
+  </div>
+
+  <!-- Transcript log -->
+  <div class="card">
+    <div class="card-title">
+      <span class="ico">📝</span> Transcription
+      <span style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn-icon" onclick="clearTranscript()" title="Effacer">🗑️</button>
+        <button class="btn-icon" onclick="copyTranscript()" title="Copier">📋</button>
+      </span>
+    </div>
+    <div class="transcript-log" id="transcriptLog">
+      <div class="empty-log">🎙️ La transcription apparaîtra ici en temps réel</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- TAB 4 : COMPTE RENDU                         -->
+<!-- ════════════════════════════════════════════ -->
+<div id="tab-summary-content" style="display:none">
+
+  <div class="card">
+    <div class="card-title"><span class="ico">📄</span> Compte rendu automatique</div>
+
+    <div id="summaryEmpty" style="text-align:center;padding:30px;color:var(--muted);font-size:13px">
+      ⏸️ Termine l'enregistrement pour générer le compte rendu.
+    </div>
+
+    <div id="summaryContent" style="display:none">
+
+      <div class="sum-section">
+        <h3>📋 Résumé exécutif</h3>
+        <div class="sum-text" id="sumText"></div>
+      </div>
+
+      <div class="sum-section">
+        <h3>🔑 Points clés</h3>
+        <div id="sumPoints"></div>
+      </div>
+
+      <div class="sum-section">
+        <h3>✅ Actions à suivre</h3>
+        <div id="sumActions"></div>
+      </div>
+
+      <div class="sum-section">
+        <h3>💬 Dialogue par locuteur</h3>
+        <div id="sumDialogue" style="max-height:300px;overflow-y:auto;scrollbar-width:thin"></div>
+      </div>
+
+      <div class="export-bar">
+        <button class="btn btn-green btn-lg" onclick="exportDocx()" id="btnExport">📄 Exporter en Word (.docx)</button>
+        <button class="btn btn-ghost" onclick="regenerateSummary()">🔄 Régénérer</button>
+        <span class="status-msg" id="exportStatus"></span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</div><!-- /app -->
+
+<!-- TOAST -->
+<div id="toast"><div class="toast-inner" id="toastInner"></div></div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════
+const state = {
+  myName: 'Hakan',
+  clientName: 'Interlocuteur',
+  sensitivity: 0.75,
+  voiceTrained: false,
+  voiceProfile: null,       // array of MFCC feature vectors
+  trainStep: 0,
+  trainPhrases: [
+    'Bonjour, je suis Hakan. Je travaille en freelance sur des projets vidéo et je participe à cette réunion.',
+    'Nous allons discuter du contenu à produire, des délais et du budget prévu pour ce projet.',
+    'Je vais vous partager mes idées et prendre des notes tout au long de notre échange.'
+  ],
+
+  isRecording: false,
+  isListening: false,
+  startTime: null,
+  timerInterval: null,
+
+  transcript: [],       // {time, speaker:'me'|'other'|'note', text, confidence}
+  currentSpeaker: 'unknown',
+  meCount: 0,
+  otherCount: 0,
+
+  // Audio
+  audioCtx: null,
+  analyser: null,
+  sourceNode: null,
+  stream: null,
+  recognition: null,
+
+  // Training audio
+  trainCtx: null,
+  trainAnalyser: null,
+  trainStream: null,
+  trainProcessor: null,
+  trainRecording: false,
+  trainBuffers: [],     // per-phrase MFCC averages
+  trainCurrentBuffer: [],
+
+  meeting: {}
+};
+
+// ════════════════════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════════════════════
+function showTab(name) {
+  ['profile','meeting','record','summary'].forEach(t => {
+    document.getElementById(`tab-${t}-content`).style.display = t === name ? '' : 'none';
+    document.getElementById(`tab-${t}`).classList.toggle('active', t === name);
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// SETTINGS
+// ════════════════════════════════════════════════════════
+function saveSettings() {
+  state.myName = document.getElementById('myName').value.trim() || 'Hakan';
+  state.sensitivity = parseFloat(document.getElementById('sensitivity').value);
+  document.getElementById('spMeName').textContent = state.myName;
+  document.getElementById('spMeAvatar').textContent = state.myName[0].toUpperCase();
+  toast('✅ Paramètres sauvegardés');
+}
+
+function syncClientName() {
+  const v = document.getElementById('clientName').value.trim();
+  state.clientName = v || 'Interlocuteur';
+  document.getElementById('spOtherName').textContent = state.clientName || 'Interlocuteur';
+  document.getElementById('spOtherAvatar').textContent = (state.clientName||'?')[0].toUpperCase();
+}
+
+function clearMeetingForm() {
+  ['meetingTitle','meetingType','meetingDate','meetingTime','meetingLocation',
+   'clientName','clientCompany','meetingObjective','otherParticipants'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.tagName === 'SELECT' ? el.selectedIndex = 0 : (el.value = '');
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// MFCC — lightweight browser implementation
+// ════════════════════════════════════════════════════════
+function computeMFCC(buffer, sampleRate) {
+  // Simplified MFCC: 13 coefficients from FFT magnitude
+  const N = 512;
+  const frame = buffer.slice(0, N);
+  // Pre-emphasis
+  const preemph = [frame[0]];
+  for(let i=1;i<frame.length;i++) preemph.push(frame[i] - 0.97*frame[i-1]);
+  // Hamming window
+  const windowed = preemph.map((s,i) => s * (0.54 - 0.46*Math.cos(2*Math.PI*i/(N-1))));
+  // Magnitude spectrum (simplified DFT on 64 points for speed)
+  const M = 64;
+  const mag = new Float32Array(M);
+  for(let k=0;k<M;k++){
+    let re=0,im=0;
+    for(let n=0;n<N;n++){
+      const angle = 2*Math.PI*k*n/N;
+      re += windowed[n]*Math.cos(angle);
+      im -= windowed[n]*Math.sin(angle);
+    }
+    mag[k] = Math.sqrt(re*re+im*im);
+  }
+  // Mel filterbank (13 filters)
+  const nFilters = 13;
+  const fMin = 300, fMax = Math.min(sampleRate/2, 8000);
+  const melMin = 2595*Math.log10(1+fMin/700);
+  const melMax = 2595*Math.log10(1+fMax/700);
+  const melPoints = Array.from({length:nFilters+2},(_,i) => melMin + i*(melMax-melMin)/(nFilters+1));
+  const hzPoints = melPoints.map(m => 700*(Math.pow(10,m/2595)-1));
+  const binPoints = hzPoints.map(h => Math.round(h*N/sampleRate));
+  const filterbank = new Float32Array(nFilters);
+  for(let m=1;m<=nFilters;m++){
+    for(let k=binPoints[m-1];k<binPoints[m];k++) filterbank[m-1] += mag[Math.min(k,M-1)] * (k-binPoints[m-1])/(binPoints[m]-binPoints[m-1]);
+    for(let k=binPoints[m];k<binPoints[m+1];k++) filterbank[m-1] += mag[Math.min(k,M-1)] * (binPoints[m+1]-k)/(binPoints[m+1]-binPoints[m]);
+    filterbank[m-1] = Math.log(filterbank[m-1]+1e-6);
+  }
+  // DCT
+  const mfcc = new Float32Array(13);
+  for(let n=0;n<13;n++)
+    for(let m=0;m<nFilters;m++)
+      mfcc[n] += filterbank[m]*Math.cos(Math.PI*n*(m+0.5)/nFilters);
+  return mfcc;
+}
+
+function cosineSim(a,b) {
+  let dot=0,na=0,nb=0;
+  for(let i=0;i<a.length;i++){dot+=a[i]*b[i];na+=a[i]*a[i];nb+=b[i]*b[i]}
+  return dot/(Math.sqrt(na)*Math.sqrt(nb)+1e-9);
+}
+
+function speakerMatch(liveBuffer, sampleRate) {
+  if(!state.voiceProfile || !state.voiceProfile.length) return {speaker:'unknown', confidence:0};
+  const liveMFCC = computeMFCC(liveBuffer, sampleRate);
+  let score = 0;
+  state.voiceProfile.forEach(prof => { score += cosineSim(liveMFCC, prof); });
+  score /= state.voiceProfile.length;
+  const threshold = state.sensitivity;
+  return {
+    speaker: score >= threshold ? 'me' : 'other',
+    confidence: score,
+    scoreRaw: score
+  };
+}
+
+// ════════════════════════════════════════════════════════
+// TRAINING
+// ════════════════════════════════════════════════════════
+const TRAIN_PHRASES = [
+  '💬 « Bonjour, je suis Hakan. Je travaille en freelance sur des projets vidéo et je participe à cette réunion. »',
+  '💬 « Nous allons discuter du contenu à produire, des délais et du budget prévu pour ce projet. »',
+  '💬 « Je vais vous partager mes idées et prendre des notes tout au long de notre échange. »'
+];
+let trainWaveAnim;
+
+async function toggleTrainRec() {
+  if(state.trainRecording) {
+    stopTrainRec();
+  } else {
+    await startTrainRec();
+  }
+}
+
+async function startTrainRec() {
+  if(state.trainStep >= 3) { toast('✅ Entraînement déjà complet !'); return; }
+  try {
+    state.trainStream = await navigator.mediaDevices.getUserMedia({audio:true});
+    state.trainCtx = new AudioContext();
+    state.trainAnalyser = state.trainCtx.createAnalyser();
+    state.trainAnalyser.fftSize = 512;
+    const src = state.trainCtx.createMediaStreamSource(state.trainStream);
+    src.connect(state.trainAnalyser);
+
+    state.trainRecording = true;
+    state.trainCurrentBuffer = [];
+
+    document.getElementById('btnTrainRec').textContent = '⏹️ Arrêter';
+    document.getElementById('btnTrainRec').className = 'btn btn-ghost';
+    document.getElementById('avatarRing').className = 'avatar-ring recording';
+    document.getElementById('voiceStatusText').textContent = 'Parle maintenant…';
+    document.getElementById('voiceStatusSub').textContent = 'Lis la phrase indiquée ci-dessus';
+
+    // Collect audio frames
+    const buf = new Float32Array(state.trainAnalyser.fftSize);
+    const collect = () => {
+      if(!state.trainRecording) return;
+      state.trainAnalyser.getFloatTimeDomainData(buf);
+      state.trainCurrentBuffer.push([...buf]);
+      trainWaveAnim = requestAnimationFrame(collect);
+      drawTrainWave(buf);
+      animVoiceBars(buf);
+    };
+    collect();
+
+    // Auto-stop after 5s
+    setTimeout(() => { if(state.trainRecording) stopTrainRec(); }, 5000);
+  } catch(e) {
+    toast('❌ Accès micro refusé'); console.error(e);
+  }
+}
+
+function stopTrainRec() {
+  if(!state.trainRecording) return;
+  cancelAnimationFrame(trainWaveAnim);
+  state.trainRecording = false;
+  if(state.trainStream) state.trainStream.getTracks().forEach(t=>t.stop());
+  if(state.trainCtx) state.trainCtx.close();
+
+  // Compute mean MFCC from collected frames
+  if(state.trainCurrentBuffer.length > 0) {
+    const mfccs = state.trainCurrentBuffer.map(frame =>
+      computeMFCC(new Float32Array(frame), 44100));
+    // Average
+    const mean = new Float32Array(13);
+    mfccs.forEach(m => m.forEach((v,i) => mean[i]+=v));
+    mean.forEach((_,i) => mean[i] /= mfccs.length);
+    if(!state.trainBuffers) state.trainBuffers = [];
+    state.trainBuffers.push(mean);
+  }
+
+  state.trainStep++;
+  updateTrainUI();
+  document.getElementById('btnTrainRec').textContent = '🔴 Enregistrer la phrase';
+  document.getElementById('btnTrainRec').className = 'btn btn-danger';
+}
+
+function updateTrainUI() {
+  const steps = ['step1','step2','step3'];
+  steps.forEach((id,i) => {
+    const el = document.getElementById(id);
+    el.className = 'train-step' + (i < state.trainStep ? ' done' : i === state.trainStep ? ' active' : '');
+    if(i < state.trainStep) el.innerHTML = `<div class="train-step-num">✓</div>Phrase ${i+1}`;
+  });
+  document.getElementById('trainBar').style.width = (state.trainStep / 3 * 100) + '%';
+
+  if(state.trainStep < 3) {
+    document.getElementById('trainPhrase').textContent = TRAIN_PHRASES[state.trainStep];
+    document.getElementById('voiceStatusText').textContent = `Phrase ${state.trainStep} enregistrée`;
+    document.getElementById('voiceStatusSub').textContent = `Plus que ${3-state.trainStep} phrase(s)`;
+    document.getElementById('avatarRing').className = 'avatar-ring';
+  } else {
+    // Training complete
+    state.voiceTrained = true;
+    state.voiceProfile = state.trainBuffers;
+    document.getElementById('avatarRing').className = 'avatar-ring trained';
+    document.getElementById('avatarRing').textContent = '✅';
+    document.getElementById('voiceStatusText').textContent = 'Profil vocal enregistré !';
+    document.getElementById('voiceStatusSub').textContent = 'Reconnaissance automatique activée';
+    document.getElementById('voiceBadge').textContent = '🎙️ Voix entraînée';
+    document.getElementById('voiceBadge').style.background = 'rgba(34,197,94,.1)';
+    document.getElementById('voiceBadge').style.borderColor = 'rgba(34,197,94,.25)';
+    document.getElementById('voiceBadge').style.color = 'var(--green)';
+    document.getElementById('trainDone').style.display = '';
+    document.getElementById('btnTrainRec').disabled = true;
+    renderMFCCGrid();
+    toast('🎉 Profil vocal complet ! La détection de locuteur est active.');
+  }
+}
+
+function renderMFCCGrid() {
+  const grid = document.getElementById('mfccGrid');
+  grid.innerHTML = '';
+  if(!state.voiceProfile) return;
+  state.voiceProfile.forEach(mfcc => {
+    mfcc.forEach(v => {
+      const cell = document.createElement('div');
+      cell.className = 'mfcc-cell';
+      const norm = Math.min(1, Math.abs(v) / 20);
+      cell.style.background = `rgba(37,99,235,${0.15 + norm*0.7})`;
+      grid.appendChild(cell);
+    });
+  });
+}
+
+function resetVoiceProfile() {
+  state.trainStep = 0; state.trainBuffers = []; state.voiceProfile = null; state.voiceTrained = false;
+  ['step1','step2','step3'].forEach((id,i) => {
+    const el = document.getElementById(id);
+    el.className = 'train-step' + (i===0?' active':'');
+    el.innerHTML = `<div class="train-step-num">${i+1}</div>Phrase ${i+1}`;
+  });
+  document.getElementById('trainBar').style.width = '0%';
+  document.getElementById('trainPhrase').textContent = TRAIN_PHRASES[0];
+  document.getElementById('trainDone').style.display = 'none';
+  document.getElementById('avatarRing').className = 'avatar-ring'; document.getElementById('avatarRing').textContent = '🎙️';
+  document.getElementById('voiceStatusText').textContent = 'Pas encore entraîné';
+  document.getElementById('voiceStatusSub').textContent = 'Clique sur Enregistrer pour commencer';
+  document.getElementById('btnTrainRec').disabled = false;
+  document.getElementById('voiceBadge').textContent = '🎙️ Non entraîné';
+  document.getElementById('voiceBadge').style.cssText = '';
+  toast('🔄 Profil vocal réinitialisé');
+}
+
+function drawTrainWave(buf) {
+  const canvas = document.getElementById('trainWave');
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth; canvas.height = 44;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.beginPath();
+  ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 1.5;
+  const step = Math.ceil(buf.length/canvas.width);
+  buf.forEach((v,i) => {
+    if(i%step!==0) return;
+    const x = (i/buf.length)*canvas.width;
+    const y = (0.5 + v*0.45)*canvas.height;
+    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+}
+
+function animVoiceBars(buf) {
+  const bars = document.querySelectorAll('#voiceBars .bar');
+  const rms = Math.sqrt(buf.reduce((s,v)=>s+v*v,0)/buf.length);
+  bars.forEach((b,i) => {
+    const h = 4 + Math.min(24, rms * 200 * (0.6 + Math.random()*0.8));
+    b.style.height = h + 'px';
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// RECORDING
+// ════════════════════════════════════════════════════════
+async function toggleMic() {
+  if(state.isListening) {
+    stopListening();
+  } else {
+    await startListening();
+  }
+}
+
+async function startListening() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR) { toast('❌ Reconnaissance vocale non supportée (utilise Chrome)'); return; }
+
+  try {
+    state.stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    state.audioCtx = new AudioContext();
+    state.analyser = state.audioCtx.createAnalyser();
+    state.analyser.fftSize = 512;
+    state.sourceNode = state.audioCtx.createMediaStreamSource(state.stream);
+    state.sourceNode.connect(state.analyser);
+  } catch(e) { toast('❌ Accès micro refusé'); return; }
+
+  state.recognition = new SR();
+  state.recognition.continuous = true;
+  state.recognition.interimResults = true;
+  state.recognition.lang = document.getElementById('langSelect').value;
+
+  state.recognition.onresult = (e) => {
+    let interim = '', final = '';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const t = e.results[i][0].transcript;
+      if(e.results[i].isFinal) final += t;
+      else interim += t;
+    }
+    // Detect speaker from current audio frame
+    const buf = new Float32Array(state.analyser.fftSize);
+    state.analyser.getFloatTimeDomainData(buf);
+    const detection = speakerMatch(buf, state.audioCtx.sampleRate);
+
+    // Show live
+    const liveBox = document.getElementById('liveBox');
+    liveBox.className = 'live-box active';
+    liveBox.innerHTML = '';
+    if(interim || final) {
+      const spLabel = document.createElement('div');
+      spLabel.className = 'live-speaker ' + (detection.speaker === 'me' ? 'me' : 'other');
+      const spName = detection.speaker === 'me' ? state.myName :
+                     (state.clientName || 'Interlocuteur');
+      const confClass = detection.confidence > 0.8 ? 'conf-high' : detection.confidence > 0.6 ? 'conf-med' : 'conf-low';
+      spLabel.innerHTML = `${spName} <span class="conf-badge ${confClass}">${Math.round(detection.confidence*100)}%</span>`;
+      liveBox.appendChild(spLabel);
+      const txt = document.createElement('div');
+      txt.style.fontStyle = 'italic';
+      txt.textContent = interim || final;
+      liveBox.appendChild(txt);
+    }
+
+    if(final.trim()) {
+      addTranscriptEntry(final.trim(), detection.speaker, detection.confidence);
+      animSpeakerWave(detection.speaker);
+      // Update counters
+      if(detection.speaker === 'me') { state.meCount++; document.getElementById('spMeCount').textContent = state.meCount; }
+      else { state.otherCount++; document.getElementById('spOtherCount').textContent = state.otherCount; }
+      // Active speaker highlight
+      document.getElementById('spMe').classList.toggle('active-speaker', detection.speaker==='me');
+      document.getElementById('spOther').classList.toggle('active-speaker', detection.speaker==='other');
+    }
+  };
+
+  state.recognition.onerror = (e) => {
+    if(e.error === 'no-speech') return;
+    toast('⚠️ Erreur reconnaisance: ' + e.error);
+  };
+  state.recognition.onend = () => {
+    if(state.isListening) state.recognition.start(); // auto-restart
+  };
+
+  state.recognition.start();
+  state.isListening = true;
+
+  if(!state.isRecording) {
+    state.isRecording = true;
+    state.startTime = Date.now();
+    state.timerInterval = setInterval(updateTimer, 1000);
+    document.getElementById('recBadge').style.display = 'flex';
+    document.getElementById('speakerMeter').style.display = 'flex';
+    document.getElementById('btnStop').disabled = false;
+  }
+
+  document.getElementById('micBtn').className = 'mic-btn on';
+  document.getElementById('micBtn').textContent = '⏸️';
+  document.getElementById('micHint').textContent = 'Micro actif — parle normalement';
+  document.getElementById('timerSub').textContent = 'Enregistrement en cours';
+  startVolumeViz();
+}
+
+function stopListening() {
+  if(state.recognition) { state.recognition.onend = null; state.recognition.stop(); }
+  state.isListening = false;
+  document.getElementById('micBtn').className = 'mic-btn off';
+  document.getElementById('micBtn').textContent = '🎙️';
+  document.getElementById('micHint').textContent = 'Micro en pause — clique pour reprendre';
+  document.getElementById('liveBox').className = 'live-box';
+  document.getElementById('liveBox').innerHTML = '<div class="live-placeholder">Micro en pause…</div>';
+  document.getElementById('spMe').classList.remove('active-speaker');
+  document.getElementById('spOther').classList.remove('active-speaker');
+  cancelAnimationFrame(state._vizFrame);
+}
+
+function stopMeeting() {
+  stopListening();
+  clearInterval(state.timerInterval);
+  if(state.stream) state.stream.getTracks().forEach(t=>t.stop());
+  if(state.audioCtx) state.audioCtx.close();
+  state.isRecording = false;
+  document.getElementById('recBadge').style.display = 'none';
+  document.getElementById('timerSub').textContent = 'Réunion terminée';
+  document.getElementById('btnStop').disabled = true;
+  buildSummary();
+  showTab('summary');
+  toast('✅ Réunion terminée — compte rendu généré');
+}
+
+function toggleSpeaker() {
+  // Manual override: flip current expected speaker for next entry
+  state.currentSpeaker = state.currentSpeaker === 'me' ? 'other' : 'me';
+  toast(`🔄 Locuteur forcé : ${state.currentSpeaker === 'me' ? state.myName : (state.clientName||'Interlocuteur')}`);
+}
+
+function updateTimer() {
+  const s = Math.floor((Date.now()-state.startTime)/1000);
+  const m = Math.floor(s/60); const ss = s%60;
+  document.getElementById('timerDisplay').textContent = `${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+}
+
+function startVolumeViz() {
+  if(!state.analyser) return;
+  const buf = new Uint8Array(state.analyser.frequencyBinCount);
+  const tick = () => {
+    state._vizFrame = requestAnimationFrame(tick);
+    state.analyser.getByteFrequencyData(buf);
+    const vol = buf.reduce((s,v)=>s+v,0)/buf.length/255;
+    // Animate mic button size
+    const btn = document.getElementById('micBtn');
+    if(state.isListening) btn.style.transform = `scale(${1+vol*0.15})`;
+  };
+  tick();
+}
+
+function animSpeakerWave(speaker) {
+  const id = speaker === 'me' ? 'spMeWave' : 'spOtherWave';
+  const bars = document.querySelectorAll(`#${id} .sp-bar`);
+  bars.forEach(b => {
+    const h = 4 + Math.random()*16;
+    b.style.height = h+'px';
+    setTimeout(()=>b.style.height='3px', 600);
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// TRANSCRIPT
+// ════════════════════════════════════════════════════════
+function addTranscriptEntry(text, speaker, confidence=1) {
+  if(!text.trim()) return;
+  const now = new Date();
+  const time = now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const entry = {time, speaker, text: text.trim(), confidence};
+  state.transcript.push(entry);
+
+  const log = document.getElementById('transcriptLog');
+  if(log.querySelector('.empty-log')) log.innerHTML = '';
+
+  const spName = speaker === 'me' ? state.myName :
+                 speaker === 'note' ? 'Note' : (state.clientName||'Interlocuteur');
+  const confClass = confidence > 0.8 ? 'conf-high' : confidence > 0.6 ? 'conf-med' : 'conf-low';
+
+  const el = document.createElement('div');
+  el.className = `t-entry is-${speaker}`;
+  el.innerHTML = `
+    <div class="t-time">${time}</div>
+    <div class="t-speaker ${speaker}">${spName}</div>
+    <div class="t-text">${text}${speaker!=='note'?` <span class="conf-badge ${confClass}" style="margin-left:6px">${Math.round(confidence*100)}%</span>`:''}</div>
+  `;
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+}
+
+function addNote() {
+  const input = document.getElementById('noteInput');
+  const text = input.value.trim();
+  if(!text) return;
+  addTranscriptEntry('📌 '+text, 'note', 1);
+  input.value = '';
+}
+
+function clearTranscript() {
+  if(!confirm('Effacer toute la transcription ?')) return;
+  state.transcript = [];
+  state.meCount = 0; state.otherCount = 0;
+  document.getElementById('transcriptLog').innerHTML = '<div class="empty-log">🎙️ La transcription apparaîtra ici en temps réel</div>';
+  document.getElementById('spMeCount').textContent = '0';
+  document.getElementById('spOtherCount').textContent = '0';
+}
+
+function copyTranscript() {
+  const text = state.transcript.map(e=>`[${e.time}] ${e.speaker==='me'?state.myName:(state.clientName||'Interlocuteur')}: ${e.text}`).join('\n');
+  navigator.clipboard.writeText(text).then(()=>toast('📋 Transcription copiée'));
+}
+
+// ════════════════════════════════════════════════════════
+// SUMMARY GENERATION (local, no API)
+// ════════════════════════════════════════════════════════
+function buildSummary() {
+  const t = state.transcript;
+  if(!t.length) return;
+
+  document.getElementById('summaryEmpty').style.display = 'none';
+  document.getElementById('summaryContent').style.display = '';
+
+  // Meeting info
+  const title = document.getElementById('meetingTitle').value || 'Réunion';
+  const date = document.getElementById('meetingDate').value || new Date().toISOString().slice(0,10);
+  const client = document.getElementById('clientName').value || state.clientName;
+
+  // Full text
+  const fullText = t.map(e=>e.text).join(' ');
+  const words = fullText.toLowerCase().split(/\s+/);
+
+  // Summary: first + middle + last sentences from transcript
+  const allTexts = t.filter(e=>e.speaker!=='note').map(e=>e.text);
+  let summary = '';
+  if(allTexts.length===0) { summary = 'Aucun échange vocal enregistré.'; }
+  else if(allTexts.length<=3) { summary = allTexts.join(' '); }
+  else {
+    const mid = Math.floor(allTexts.length/2);
+    summary = `${allTexts[0]} ${allTexts[mid]} ${allTexts[allTexts.length-1]}`;
+  }
+  document.getElementById('sumText').textContent = summary;
+
+  // Key points: sentences with keywords
+  const kpKeywords = ['important','décidé','convenu','accord','objectif','délai','budget','livraison','date','deadline','valider','confirmer','besoin','priorité'];
+  const keyPoints = t.filter(e => {
+    const low = e.text.toLowerCase();
+    return kpKeywords.some(k=>low.includes(k));
+  }).map(e=>e.text).slice(0,6);
+  if(!keyPoints.length && t.length) keyPoints.push(t[0].text);
+  const spDiv = document.getElementById('sumPoints');
+  spDiv.innerHTML = '';
+  if(keyPoints.length) {
+    keyPoints.forEach(kp => {
+      const d = document.createElement('div');
+      d.className = 'kp-tag'; d.textContent = '• '+kp;
+      spDiv.appendChild(d);
+    });
+  } else { spDiv.textContent = 'Aucun point clé détecté.'; }
+
+  // Action items: sentences with action verbs
+  const actionKw = ['faire','envoyer','préparer','appeler','vérifier','mettre','créer','rédiger','produire','livrer','contacter','prévoir','planifier','revoir','corriger','fournir'];
+  const actions = t.filter(e => {
+    const low = e.text.toLowerCase();
+    return actionKw.some(k=>low.includes(k));
+  }).map(e=>e.text).slice(0,8);
+  const notes = t.filter(e=>e.speaker==='note').map(e=>e.text.replace('📌','').trim());
+  const allActions = [...new Set([...notes,...actions])];
+  const actDiv = document.getElementById('sumActions');
+  actDiv.innerHTML = '';
+  if(allActions.length) {
+    allActions.forEach(a => {
+      const d = document.createElement('div');
+      d.className = 'action-item';
+      d.innerHTML = `<input type="checkbox" class="action-cb"> <span>${a}</span>`;
+      actDiv.appendChild(d);
+    });
+  } else { actDiv.textContent = 'Aucune action identifiée.'; }
+
+  // Dialogue
+  const dlgDiv = document.getElementById('sumDialogue');
+  dlgDiv.innerHTML = '';
+  t.filter(e=>e.speaker!=='note').forEach(e=>{
+    const isMe = e.speaker==='me';
+    const name = isMe ? state.myName : (state.clientName||'Interlocuteur');
+    const d = document.createElement('div');
+    d.className = `dialogue-entry ${isMe?'me':'other'}`;
+    d.innerHTML = `<div class="dialogue-speaker">${name} · ${e.time}</div><div>${e.text}</div>`;
+    dlgDiv.appendChild(d);
+  });
+
+  // Save for export
+  state.summaryData = { title, date, client, summary, keyPoints, actions: allActions };
+}
+
+function regenerateSummary() { buildSummary(); toast('🔄 Compte rendu régénéré'); }
+
+// ════════════════════════════════════════════════════════
+// DOCX EXPORT
+// ════════════════════════════════════════════════════════
+async function exportDocx() {
+  const btn = document.getElementById('btnExport');
+  const status = document.getElementById('exportStatus');
+  btn.disabled = true; btn.textContent = '⏳ Génération…'; status.textContent = '';
+
+  try {
+    const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType,
+      BorderStyle, LevelFormat, WidthType, Table, TableRow, TableCell, ShadingType } = window.docx;
+
+    const accent = '2563EB';
+    const lightBg = 'EEF4FB';
+    const sd = state.summaryData || {};
+    const myName = state.myName || 'Hakan';
+    const clientName = state.clientName || 'Interlocuteur';
+
+    // Meeting info from form
+    const mTitle  = document.getElementById('meetingTitle').value || 'Réunion';
+    const mDate   = document.getElementById('meetingDate').value || new Date().toISOString().slice(0,10);
+    const mTime   = document.getElementById('meetingTime').value || '--:--';
+    const mType   = document.getElementById('meetingType').value || '';
+    const mLoc    = document.getElementById('meetingLocation').value || 'Non renseigné';
+    const mClient = document.getElementById('clientName').value || 'Non renseigné';
+    const mCompany= document.getElementById('clientCompany').value || '';
+    const mObj    = document.getElementById('meetingObjective').value || 'Non renseigné';
+    const mOther  = document.getElementById('otherParticipants').value || '';
+
+    const dur = document.getElementById('timerDisplay').textContent || '00:00';
+
+    const sectionH = (text) => new Paragraph({
+      heading: HeadingLevel.HEADING_1,
+      spacing:{before:360,after:160},
+      border:{bottom:{style:BorderStyle.SINGLE,size:4,color:accent,space:6}},
+      children:[new TextRun({text,bold:true,color:accent,size:28,font:'Arial'})]
+    });
+    const body = (text,opts={}) => new Paragraph({
+      spacing:{after:100},
+      children:[new TextRun({text,font:'Arial',size:22,...opts})]
+    });
+    const bullet = (text) => new Paragraph({
+      numbering:{reference:'bullets',level:0},
+      spacing:{after:80},
+      children:[new TextRun({text,font:'Arial',size:22})]
+    });
+    const makeRow = (label,value) => new TableRow({children:[
+      new TableCell({
+        width:{size:2700,type:WidthType.DXA},
+        shading:{fill:lightBg,type:ShadingType.CLEAR},
+        margins:{top:80,bottom:80,left:120,right:120},
+        children:[new Paragraph({children:[new TextRun({text:label,bold:true,font:'Arial',size:20,color:accent})]})]
+      }),
+      new TableCell({
+        width:{size:6660,type:WidthType.DXA},
+        margins:{top:80,bottom:80,left:120,right:120},
+        children:[new Paragraph({children:[new TextRun({text:value,font:'Arial',size:20})]})]
+      })
+    ]});
+
+    const children = [
+      // Title
+      new Paragraph({alignment:AlignmentType.CENTER,spacing:{after:40},
+        children:[new TextRun({text:mTitle,bold:true,size:40,font:'Arial',color:accent})]}),
+      new Paragraph({alignment:AlignmentType.CENTER,spacing:{after:200},
+        children:[new TextRun({text:`${mDate}  ·  ${mTime}  ·  Durée : ${dur}`,size:19,font:'Arial',color:'888888'})]}),
+
+      // Info table
+      new Table({
+        width:{size:9360,type:WidthType.DXA},
+        columnWidths:[2700,6660],
+        rows:[
+          makeRow('Type',mType),
+          makeRow('Date',mDate),
+          makeRow('Heure',mTime),
+          makeRow('Lieu / Plateforme',mLoc),
+          makeRow('Client',mClient + (mCompany ? ` — ${mCompany}` : '')),
+          makeRow('Participants',`${myName} (moi)${mOther?', '+mOther:''}`),
+          makeRow('Durée',dur),
+          makeRow('Objectif',mObj),
+        ]
+      }),
+      new Paragraph({spacing:{after:200},children:[new TextRun('')]}),
+
+      // Summary
+      sectionH('📋 Résumé Exécutif'),
+      body(sd.summary || 'Aucun résumé.'),
+      new Paragraph({spacing:{after:160},children:[new TextRun('')]}),
+
+      // Key points
+      sectionH('🔑 Points Clés'),
+      ...(sd.keyPoints?.length ? sd.keyPoints.map(bullet) : [body('Aucun point clé.')]),
+      new Paragraph({spacing:{after:160},children:[new TextRun('')]}),
+
+      // Actions
+      sectionH('✅ Actions à Suivre'),
+      ...(sd.actions?.length ? sd.actions.map(bullet) : [body('Aucune action.')]),
+      new Paragraph({spacing:{after:160},children:[new TextRun('')]}),
+
+      // Dialogue
+      sectionH('💬 Dialogue par Locuteur'),
+      ...state.transcript.filter(e=>e.speaker!=='note').flatMap(e => {
+        const name = e.speaker==='me' ? myName : clientName;
+        return [
+          new Paragraph({spacing:{after:40},
+            children:[new TextRun({text:`[${e.time}] ${name}`,bold:true,size:20,font:'Arial',
+              color:e.speaker==='me'?accent:'B45309'})]}),
+          new Paragraph({spacing:{after:100},
+            children:[new TextRun({text:e.text,size:20,font:'Arial'})]}),
+        ];
+      }),
+      new Paragraph({spacing:{after:160},children:[new TextRun('')]}),
+
+      // Notes
+      sectionH('📌 Notes Manuelles'),
+      ...state.transcript.filter(e=>e.speaker==='note').map(e=>bullet(e.text.replace('📌','').trim())),
+      ...(state.transcript.filter(e=>e.speaker==='note').length===0 ? [body('Aucune note.')] : []),
+
+      // Footer line
+      new Paragraph({spacing:{before:400,after:0},
+        border:{top:{style:BorderStyle.SINGLE,size:2,color:'CCCCCC',space:6}},
+        children:[new TextRun({text:`Document généré par Meeting Assistant · HY Montage · ${new Date().toLocaleString('fr-FR')}`,
+          size:16,font:'Arial',color:'AAAAAA',italics:true})]})
+    ];
+
+    const doc = new Document({
+      numbering:{config:[{reference:'bullets',levels:[{
+        level:0,format:LevelFormat.BULLET,text:'•',alignment:AlignmentType.LEFT,
+        style:{paragraph:{indent:{left:720,hanging:360}}}
+      }]}]},
+      styles:{
+        default:{document:{run:{font:'Arial',size:22}}},
+        paragraphStyles:[
+          {id:'Heading1',name:'Heading 1',basedOn:'Normal',next:'Normal',quickFormat:true,
+            run:{size:28,bold:true,font:'Arial',color:accent},
+            paragraph:{spacing:{before:360,after:160},outlineLevel:0}}
+        ]
+      },
+      sections:[{
+        properties:{page:{size:{width:11906,height:16838},margin:{top:1440,right:1440,bottom:1440,left:1440}}},
+        children
+      }]
+    });
+
+    const buffer = await Packer.toBuffer(doc);
+    const blob = new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href=url;
+    a.download = `compte-rendu-${mClient.replace(/\s+/g,'-')}-${mDate}.docx`;
+    a.click(); URL.revokeObjectURL(url);
+
+    status.textContent = '✅ Fichier téléchargé !';
+    toast('📄 Compte rendu Word exporté avec succès');
+  } catch(e) {
+    status.textContent = '❌ Erreur export';
+    console.error(e); toast('❌ Erreur lors de l\'export: '+e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = '📄 Exporter en Word (.docx)';
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════════════════
+function toast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastInner').textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(t._hide);
+  t._hide = setTimeout(()=>t.style.display='none', 3000);
+}
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  // Set today's date
+  document.getElementById('meetingDate').value = new Date().toISOString().slice(0,10);
+  // Set current time
+  const now = new Date();
+  document.getElementById('meetingTime').value =
+    `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  // Sync speaker names
+  document.getElementById('spMeName').textContent = state.myName;
+  document.getElementById('spMeAvatar').textContent = state.myName[0];
+});
+</script>
+</body>
+</html>
